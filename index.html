@@ -3,39 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Calendar</title>
+    <title>Calendar Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; }
+        h1 { text-align: center; }
+        .calendar { display: flex; flex-direction: column; gap: 10px; }
+        .event { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+        img { display: block; margin: 0 auto 20px; width: 200px; }
+    </style>
 </head>
 <body>
-    <h1>Calendar</h1>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Event</th>
-                <th>Partner</th>
-                <th>Time</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>2025-02-13</td>
-                <td>test 20.01</td>
-                <td>Sebastian</td>
-                <td>10:00</td>
-            </tr>
-            <tr>
-                <td>2025-02-06</td>
-                <td>No title</td>
-                <td>-</td>
-                <td>10:00</td>
-            </tr>
-            <tr>
-                <td>2025-01-31</td>
-                <td>testplantafel</td>
-                <td>Sebastian</td>
-                <td>09:00</td>
-            </tr>
-        </tbody>
-    </table>
+    <img src="https://hero-software.de/assets/img/static/logos/hero-logo-new-nav.svg" alt="Hero Software Logo">
+    <h1>Calendar Events</h1>
+    <div class="calendar">
+        <div class="event"><strong>2025-02-13 10:00</strong> - test 20.01 (Sebastian)</div>
+        <div class="event"><strong>2025-02-06 10:00</strong> - No title</div>
+        <div class="event"><strong>2025-01-31 09:00</strong> - testplantafel (Sebastian)</div>
+    </div>
 </body>
 </html>
