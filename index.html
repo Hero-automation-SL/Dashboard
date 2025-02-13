@@ -7,20 +7,66 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; }
         h1 { text-align: center; }
-        .calendar { display: flex; flex-direction: column; gap: 10px; }
-        .event { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+        .calendar { display: grid; grid-template-columns: auto repeat(5, 1fr); gap: 5px; }
+        .time-slot { grid-column: 1; text-align: right; padding-right: 10px; }
+        .day { font-weight: bold; text-align: center; padding: 10px; background: #f0f0f0; }
+        .event-slot { min-height: 60px; border: 1px solid #ddd; padding: 5px; }
+        .event { background: #e6f3ff; padding: 5px; margin-bottom: 5px; border-radius: 3px; font-size: 0.9em; }
         img { display: block; margin: 0 auto 20px; width: 200px; }
     </style>
 </head>
 <body>
     <img src="https://hero-software.de/assets/img/static/logos/hero-logo-new-nav.svg" alt="Hero Software Logo">
     <h1>Plantafel</h1>
-    <div class="calendar">
- <div class="event"><strong>13-02-2025 11:00</strong> - test 20.01 (Sebastian)</div>
-<div class="event"><strong>06-02-2025 11:00</strong> -  ()</div>
-<div class="event"><strong>31-01-2025 10:00</strong> - testplantafel (Sebastian)</div>
-<div class="event"><strong>31-01-2025 13:00</strong> - Neuer Termin auf der Baustelle (Sebastian)</div>
-<div class="event"><strong>31-01-2025 17:00</strong> - Superbaustelle (Sebastian)</div>
-    </div>
+    <div class="calendar" id="weekCalendar"></div>
+
+    <script>
+        function createWeekCalendar(events) {
+            const calendar = document.getElementById('weekCalendar');
+            const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
+            const startHour = 7;
+            const endHour = 18;
+
+            // Create day headers
+            calendar.innerHTML = '<div></div>'; // Empty cell for time column
+            days.forEach(day => {
+                calendar.innerHTML += `<div class="day">${day}</div>`;
+            });
+
+            // Create time slots and event slots
+            for (let hour = startHour; hour <= endHour; hour++) {
+                calendar.innerHTML += `<div class="time-slot">${hour}:00</div>`;
+                for (let day = 0; day < 5; day++) {
+                    calendar.innerHTML += `<div class="event-slot" data-day="${day}" data-hour="${hour}"></div>`;
+                }
+            }
+
+            // Populate events
+            events.forEach(event => {
+                const date = new Date(event.date);
+                const day = date.getDay() - 1; // 0 (Monday) to 4 (Friday)
+                const hour = date.getHours();
+                const minute = date.getMinutes();
+
+                if (day >= 0 && day <= 4 && hour >= startHour && hour < endHour) {
+                    const slot = document.querySelector(`.event-slot[data-day="${day}"][data-hour="${hour}"]`);
+                    if (slot) {
+                        slot.innerHTML += `
+                            <div class="event">
+                                <strong>${hour}:${minute.toString().padStart(2, '0')}</strong> - ${event.title} (${event.organizer})
+                            </div>
+                        `;
+                    }
+                }
+            });
+        }
+
+        // Example usage (replace this with your dynamic data)
+        const sampleEvents = [
+    { date: '13-02-2025 11:00', title: 'test 20.01', organizer: 'Sebastian' },{ date: '06-02-2025 11:00', title: '', organizer: '' },{ date: '31-01-2025 10:00', title: 'testplantafel', organizer: 'Sebastian' },{ date: '31-01-2025 13:00', title: 'Neuer Termin auf der Baustelle', organizer: 'Sebastian' },{ date: '31-01-2025 17:00', title: 'Superbaustelle', organizer: 'Sebastian' }
+        ];
+
+        createWeekCalendar(sampleEvents);
+    </script>
 </body>
 </html>
