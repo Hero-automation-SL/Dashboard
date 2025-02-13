@@ -21,6 +21,12 @@
     <div class="calendar" id="weekCalendar"></div>
 
     <script>
+        function getWeekStartDate(date) {
+            const day = date.getDay();
+            const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+            return new Date(date.setDate(diff));
+        }
+
         function createWeekCalendar(events) {
             const calendar = document.getElementById('weekCalendar');
             const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
@@ -28,17 +34,23 @@
             const endHour = 18;
 
             // Get the Monday of the current week
-            const today = new Date();
-            const currentMonday = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+            const currentDate = new Date(); // Use today's date
+            const weekStart = getWeekStartDate(new Date(currentDate));
+            const weekDates = [];
+
+            // Generate dates for Monday to Friday
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(weekStart);
+                date.setDate(weekStart.getDate() + i);
+                weekDates.push(date);
+            }
 
             // Create day headers with dates
             calendar.innerHTML = '<div></div>'; // Empty cell for time column
-            for (let i = 0; i < 5; i++) {
-                const date = new Date(currentMonday);
-                date.setDate(date.getDate() + i);
+            weekDates.forEach((date, index) => {
                 const dateString = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-                calendar.innerHTML += `<div class="day">${days[i]} ${dateString}</div>`;
-            }
+                calendar.innerHTML += `<div class="day">${days[index]} ${dateString}</div>`;
+            });
 
             // Create time slots and event slots
             for (let hour = startHour; hour <= endHour; hour++) {
@@ -50,19 +62,24 @@
 
             // Populate events
             events.forEach(event => {
+                // Parse event date (convert DD-MM-YYYY HH:mm to a Date object)
                 const [datePart, timePart] = event.date.split(' ');
                 const [day, month, year] = datePart.split('-');
                 const [hour, minute] = timePart.split(':');
                 const eventDate = new Date(year, month - 1, day, hour, minute);
+
+                // Find the corresponding day and hour slot
+                const eventDayIndex = weekDates.findIndex(
+                    weekDate =>
+                        eventDate.toDateString() === weekDate.toDateString()
+                );
                 
-                const dayOfWeek = (eventDate.getDay() + 6) % 7; // Adjust so Monday is 0
-                
-                if (dayOfWeek >= 0 && dayOfWeek <= 4 && hour >= startHour && hour < endHour) {
-                    const slot = document.querySelector(`.event-slot[data-day="${dayOfWeek}"][data-hour="${hour}"]`);
+                if (eventDayIndex >= 0 && hour >= startHour && hour <= endHour) {
+                    const slot = document.querySelector(`.event-slot[data-day="${eventDayIndex}"][data-hour="${hour}"]`);
                     if (slot) {
                         slot.innerHTML += `
                             <div class="event">
-                                <strong>${hour}:${minute}</strong> - ${event.title} (${event.organizer})
+                                <strong>${hour}:${minute.padStart(2, '0')}</strong> - ${event.title} (${event.organizer})
                             </div>
                         `;
                     }
@@ -70,13 +87,12 @@
             });
         }
 
-        // Example usage with the provided data
+        // Example usage with your provided data
         const sampleEvents = [
-       { date: '13-02-2025 11:00', title: 'test 20.01', organizer: 'Sebastian' },{ date: '10-02-2025 09:00', title: 'testmonatg', organizer: 'Sebastian' },{ date: '13-02-2025 09:00', title: 'sebastians Termin', organizer: 'Sebastian' },{ date: '14-02-2025 18:00', title: 'Baugrube nr 3', organizer: 'Sebastian' },{ date: '14-02-2025 10:00', title: 'Hotel Transsilvanien', organizer: 'Sebastian' },{ date: '12-02-2025 07:00', title: 'Hotel Mangrovia', organizer: 'Sebastian' }
+           { date: '13-02-2025 11:00', title: 'test 20.01', organizer: 'Sebastian' },{ date: '10-02-2025 09:00', title: 'testmonatg', organizer: 'Sebastian' },{ date: '13-02-2025 09:00', title: 'sebastians Termin', organizer: 'Sebastian' },{ date: '14-02-2025 18:00', title: 'Baugrube nr 3', organizer: 'Sebastian' },{ date: '14-02-2025 10:00', title: 'Hotel Transsilvanien', organizer: 'Sebastian' },{ date: '12-02-2025 07:00', title: 'Hotel Mangrovia', organizer: 'Sebastian' }
         ];
 
         createWeekCalendar(sampleEvents);
     </script>
 </body>
 </html>
-
