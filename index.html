@@ -80,6 +80,7 @@
                 if (eventDayIndex >= 0 && startEventDate.getHours() >= startHour && startEventDate.getHours() <= endHour) {
                     const slot = document.querySelector(`.event-slot[data-day="${eventDayIndex}"][data-hour="${startEventDate.getHours()}"]`);
                     if (slot) {
+                        // Adding formatted event with start and end time
                         slot.innerHTML += `
                             <div class="event">
                                 <strong>${startTime} - ${endTime}</strong> | ${event.title} (${event.organizer})
