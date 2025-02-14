@@ -21,97 +21,157 @@
     <div class="calendar" id="weekCalendar"></div>
 
     <script>
-        function getWeekStartDate(date) {
-            const day = date.getDay();
-            const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
-            return new Date(date.setDate(diff));
+    function getWeekStartDate(date) {
+        const day = date.getDay();
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+        return new Date(date.setDate(diff));
+    }
+
+    function createWeekCalendar(events) {
+        const calendar = document.getElementById('weekCalendar');
+        const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
+        const startHour = 7;
+        const endHour = 18;
+
+        // Get the Monday of the current week
+        const currentDate = new Date();
+        const weekStart = getWeekStartDate(new Date(currentDate));
+        const weekDates = [];
+
+        // Generate dates for Monday to Friday
+        for (let i = 0; i < 5; i++) {
+            const date = new Date(weekStart);
+            date.setDate(weekStart.getDate() + i);
+            weekDates.push(date);
         }
 
-        function createWeekCalendar(events) {
-            const calendar = document.getElementById('weekCalendar');
-            const days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
-            const startHour = 7;
-            const endHour = 18;
+        // Create day headers with dates
+        calendar.innerHTML = '<div></div>'; // Empty cell for time column
+        weekDates.forEach((date, index) => {
+            const dateString = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+            calendar.innerHTML += `<div class="day">${days[index]} ${dateString}</div>`;
+        });
 
-            // Get the Monday of the current week
-            const currentDate = new Date(); // Use today's date
-            const weekStart = getWeekStartDate(new Date(currentDate));
-            const weekDates = [];
-
-            // Generate dates for Monday to Friday
-            for (let i = 0; i < 5; i++) {
-                const date = new Date(weekStart);
-                date.setDate(weekStart.getDate() + i);
-                weekDates.push(date);
+        // Create time slots and event slots
+        for (let hour = startHour; hour <= endHour; hour++) {
+            calendar.innerHTML += `<div class="time-slot">${hour}:00</div>`;
+            for (let day = 0; day < 5; day++) {
+                calendar.innerHTML += `<div class="event-slot" data-day="${day}" data-hour="${hour}"></div>`;
             }
+        }
 
-            // Create day headers with dates
-            calendar.innerHTML = '<div></div>'; // Empty cell for time column
-            weekDates.forEach((date, index) => {
-                const dateString = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-                calendar.innerHTML += `<div class="day">${days[index]} ${dateString}</div>`;
-            });
+        // Populate events
+        events.forEach(event => {
+            // Convert event start and end times into JavaScript Date objects
+            const eventStartDate = new Date(event.start.replace(' ', 'T'));
+            const eventEndDate = new Date(event.end.replace(' ', 'T'));
 
-            // Create time slots and event slots
-            for (let hour = startHour; hour <= endHour; hour++) {
-                calendar.innerHTML += `<div class="time-slot">${hour}:00</div>`;
-                for (let day = 0; day < 5; day++) {
-                    calendar.innerHTML += `<div class="event-slot" data-day="${day}" data-hour="${hour}"></div>`;
-                }
-            }
+            // Find the corresponding day index
+            const eventDayIndex = weekDates.findIndex(
+                weekDate => eventStartDate.toDateString() === weekDate.toDateString()
+            );
 
-            // Populate events
-            events.forEach(event => {
-                // Parse event date (convert DD-MM-YYYY HH:mm - HH:mm to a Date object)
-                const [datePart, timeRange] = event.date.split(' ');
-                const [startTime, endTime] = timeRange.split(' - ');
-                const [day, month, year] = datePart.split('-');
-                const [startHour, startMinute] = startTime.split(':');
-                const eventStartDate = new Date(year, month - 1, day, startHour, startMinute);
+            if (eventDayIndex >= 0) {
+                const eventStartHour = eventStartDate.getHours();
+                const eventStartMinute = eventStartDate.getMinutes().toString().padStart(2, '0');
+                const eventEndHour = eventEndDate.getHours();
+                const eventEndMinute = eventEndDate.getMinutes().toString().padStart(2, '0');
 
-                // Find the corresponding day and hour slot
-                const eventDayIndex = weekDates.findIndex(
-                    weekDate => eventStartDate.toDateString() === weekDate.toDateString()
-                );
-
-                if (eventDayIndex >= 0) {
-                    const eventStartHour = eventStartDate.getHours();
-                    const eventEndHour = parseInt(endTime.split(':')[0]);
-
-                    if (eventStartHour >= startHour && eventEndHour <= endHour) {
-                        const slot = document.querySelector(`.event-slot[data-day="${eventDayIndex}"][data-hour="${eventStartHour}"]`);
-                        if (slot) {
-                            slot.innerHTML += `
-                                <div class="event">
-                                    <strong>${startTime} - ${endTime}</strong> | ${event.title} (${event.organizer})
-                                </div>
-                            `;
-                        }
+                if (eventStartHour >= startHour && eventStartHour <= endHour) {
+                    const slot = document.querySelector(`.event-slot[data-day="${eventDayIndex}"][data-hour="${eventStartHour}"]`);
+                    if (slot) {
+                        slot.innerHTML += `
+                            <div class="event">
+                                <strong>${eventStartHour}:${eventStartMinute} - ${eventEndHour}:${eventEndMinute}</strong> | ${event.title} (${event.organizer})
+                            </div>
+                        `;
                     }
                 }
-            });
-        }
+            }
+        });
+    }
 
-        // Example usage with your provided data
-        const sampleEvents = [
-            { date: '13-02-2025 11:00 - 12:00', title: 'test 20.01', organizer: '' },
-            { date: '10-02-2025 09:00 - 12:00', title: 'testmonatg', organizer: '' },
-            { date: '13-02-2025 09:00 - 10:00', title: 'sebastians Termin', organizer: 'Sebastian' },
-            { date: '14-02-2025 18:00 - 19:00', title: 'Baugrube nr 3', organizer: 'Sebastian' },
-            { date: '14-02-2025 10:00 - 13:00', title: 'Hotel Transsilvanien', organizer: 'Sebastian' },
-            { date: '12-02-2025 07:00 - 10:00', title: 'Hotel Mangrovia', organizer: 'Sebastian' },
-            { date: '14-02-2025 11:30 - 12:30', title: 'max termin', organizer: 'Max' },
-            { date: '14-02-2025 11:30 - 12:30', title: 'Sebastian', organizer: 'Sebastian' },
-            { date: '14-02-2025 10:00 - 11:00', title: 'Dach bauen extrem', organizer: 'Sebastian' },
-            { date: '14-02-2025 11:00 - 12:00', title: 'Dach bauen extrem', organizer: 'Sebastian' },
-            { date: '14-02-2025 12:00 - 13:00', title: 'Dach bauen extrem', organizer: 'Sebastian' },
-            { date: '14-02-2025 13:30 - 14:30', title: 'Arbeit', organizer: 'Sebastian' },
-            { date: '14-02-2025 17:00 - 20:00', title: 'Hotel Transsilvanien', organizer: 'Sebastian' },
-            { date: '14-02-2025 17:00 - 20:00', title: 'Hotel Transsilvanien', organizer: 'Max' },
-            { date: '14-02-2025 17:00 - 20:00', title: 'Hotel Transsilvanien', organizer: 'Sebastian' }
-        ];
+    // Example usage with structured JSON data
+    const sampleEvents = [
+     { 
+  "start": "2025-02-13 11:00", 
+  "end": "2025-02-13 12:00", 
+  "title": "test 20.01", 
+  "organizer": "" 
+},{ 
+  "start": "2025-02-10 09:00", 
+  "end": "2025-02-10 12:00", 
+  "title": "testmonatg", 
+  "organizer": "" 
+},{ 
+  "start": "2025-02-13 09:00", 
+  "end": "2025-02-13 10:00", 
+  "title": "sebastians Termin", 
+  "organizer": "Sebastian" 
+},{ 
+  "start": "2025-02-14 18:00", 
+  "end": "2025-02-14 19:00", 
+  "title": "Baugrube nr 3", 
+  "organizer": "Sebastian" 
+},{ 
+  "start": "2025-02-14 10:00", 
+  "end": "2025-02-14 13:00", 
+  "title": "Hotel Transsilvanien", 
+  "organizer": "Sebastian" 
+},{ 
+  "start": "2025-02-12 07:00", 
+  "end": "2025-02-12 10:00", 
+  "title": "Hotel Mangrovia", 
+  "organizer": "Sebastian" 
+},{ 
+  "start": "2025-02-14 11:30", 
+  "end": "2025-02-14 12:30", 
+  "title": "max termin", 
+  "organizer": "Max" 
+},{ 
+  "start": "2025-02-14 11:30", 
+  "end": "2025-02-14 12:30", 
+  "title": "Sebastian", 
+  "organizer": "Sebastian" 
+},{ 
+  "start": "2025-02-14 10:00", 
+  "end": "2025-02-14 11:00", 
+  "title": "Dach bauen extrem", 
+  "organizer": "Sebastian" 
+},{ 
+  "start": "2025-02-14 11:00", 
+  "end": "2025-02-14 12:00", 
+  "title": "Dach bauen extrem", 
+  "organizer": "Sebastian" 
+},{ 
+  "start": "2025-02-14 12:00", 
+  "end": "2025-02-14 13:00", 
+  "title": "Dach bauen extrem", 
+  "organizer": "Sebastian" 
+},{ 
+  "start": "2025-02-14 13:30", 
+  "end": "2025-02-14 14:30", 
+  "title": "Arbeit", 
+  "organizer": "Sebastian" 
+},{ 
+  "start": "2025-02-14 17:00", 
+  "end": "2025-02-14 20:00", 
+  "title": "Hotel Transsilvanien", 
+  "organizer": "Sebastian" 
+},{ 
+  "start": "2025-02-14 17:00", 
+  "end": "2025-02-14 20:00", 
+  "title": "Hotel Transsilvanien", 
+  "organizer": "Max" 
+},{ 
+  "start": "2025-02-14 17:00", 
+  "end": "2025-02-14 20:00", 
+  "title": "Hotel Transsilvanien", 
+  "organizer": "Sebastian" 
+}
+    ];
 
-        createWeekCalendar(sampleEvents);
-    </script>
+    createWeekCalendar(sampleEvents);
+</script>
 </body>
 </html>
