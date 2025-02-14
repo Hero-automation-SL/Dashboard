@@ -60,32 +60,33 @@
                 }
             }
 
-            // Populate events with start and end times
+            // Populate events
             events.forEach(event => {
-                // Parse event date (convert DD-MM-YYYY HH:mm - HH:mm to Date objects)
+                // Parse event date (convert DD-MM-YYYY HH:mm - HH:mm to a Date object)
                 const [datePart, timeRange] = event.date.split(' ');
                 const [startTime, endTime] = timeRange.split(' - ');
                 const [day, month, year] = datePart.split('-');
                 const [startHour, startMinute] = startTime.split(':');
-                const [endHour, endMinute] = endTime.split(':');
-                
-                const startEventDate = new Date(year, month - 1, day, startHour, startMinute);
-                const endEventDate = new Date(year, month - 1, day, endHour, endMinute);
+                const eventStartDate = new Date(year, month - 1, day, startHour, startMinute);
 
                 // Find the corresponding day and hour slot
                 const eventDayIndex = weekDates.findIndex(
-                    weekDate => startEventDate.toDateString() === weekDate.toDateString()
+                    weekDate => eventStartDate.toDateString() === weekDate.toDateString()
                 );
 
-                if (eventDayIndex >= 0 && startEventDate.getHours() >= startHour && startEventDate.getHours() <= endHour) {
-                    const slot = document.querySelector(`.event-slot[data-day="${eventDayIndex}"][data-hour="${startEventDate.getHours()}"]`);
-                    if (slot) {
-                        // Adding formatted event with start and end time
-                        slot.innerHTML += `
-                            <div class="event">
-                                <strong>${startTime} - ${endTime}</strong> | ${event.title} (${event.organizer})
-                            </div>
-                        `;
+                if (eventDayIndex >= 0) {
+                    const eventStartHour = eventStartDate.getHours();
+                    const eventEndHour = parseInt(endTime.split(':')[0]);
+
+                    if (eventStartHour >= startHour && eventEndHour <= endHour) {
+                        const slot = document.querySelector(`.event-slot[data-day="${eventDayIndex}"][data-hour="${eventStartHour}"]`);
+                        if (slot) {
+                            slot.innerHTML += `
+                                <div class="event">
+                                    <strong>${startTime} - ${endTime}</strong> | ${event.title} (${event.organizer})
+                                </div>
+                            `;
+                        }
                     }
                 }
             });
